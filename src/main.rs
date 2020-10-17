@@ -15,43 +15,41 @@ mod epic_info {
         pub id: u64,
         pub project_id: u64,
         pub name: String,
+        pub blocked_story_ids: Vec<u64>,
+    }
+
+    async fn request_project(
+        path: String,
+    ) -> Result<reqwest::Response, Box<dyn std::error::Error>> {
+        let tracker_token = std::env::var("PIVOTAL_TRACKER_TOKEN").unwrap();
+        let project_id = std::env::var("PROJECT_ID").unwrap();
+        let response = reqwest::Client::new()
+            .get(&format!("{}/projects/{}/{}", BASE_URL, project_id, path))
+            .header("X-TrackerToken", tracker_token)
+            .send()
+            .await?;
+        Ok(response)
     }
 
     pub async fn get_epics_with_label(
         label: &str,
     ) -> Result<Vec<Epic>, Box<dyn std::error::Error>> {
-        let tracker_token = std::env::var("PIVOTAL_TRACKER_TOKEN").unwrap();
-        let project_id = std::env::var("PROJECT_ID").unwrap();
-        let epics: Vec<Epic> = reqwest::Client::new()
-            .get(&format!(
-                "{}/projects/{}/epics?filter={}",
-                BASE_URL, project_id, label
-            ))
-            .header("X-TrackerToken", tracker_token)
-            .send()
-            .await?
-            .json()
-            .await?;
+        let response = request_project(format!("/epics?filter={}", label)).await?;
+        let epics: Vec<Epic> = response.json().await?;
         println!("{:?}", epics);
 
         Ok(epics)
     }
 
-    pub async fn get_stories_for_epic(
+    pub async fn get_stories_with_label(
         epic_label: &str,
     ) -> Result<Vec<Story>, Box<dyn std::error::Error>> {
-        let tracker_token = std::env::var("PIVOTAL_TRACKER_TOKEN").unwrap();
-        let project_id = std::env::var("PROJECT_ID").unwrap();
-        let stories: Vec<Story> = reqwest::Client::new()
-            .get(&format!(
-                "{}/projects/{}/stories?with_label={}",
-                BASE_URL, project_id, epic_label
-            ))
-            .header("X-TrackerToken", tracker_token)
-            .send()
-            .await?
-            .json()
-            .await?;
+        let response = request_project(format!(
+            "stories?with_label={}&fields=:default,blocked_story_ids",
+            epic_label
+        ))
+        .await?;
+        let stories: Vec<Story> = response.json().await?;
         println!("{:?}", stories);
 
         Ok(stories)
@@ -86,7 +84,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         panic!("Error: Found more than one epic matching label.")
     }
 
-    let stories = epic_info::get_stories_for_epic(&epic_label).await?;
+    let stories = epic_info::get_stories_with_label(&epic_label).await?;
 
     let dot_diagram: String = diagram_text_emitter::dot_representation(&epics[0], &stories);
 
