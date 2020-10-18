@@ -37,7 +37,6 @@ mod epic_info {
         pub name: String,
         pub url: String,
         pub current_state: StoryState,
-        pub blocked_story_ids: Vec<u64>,
         pub blockers: Option<Vec<Blocker>>,
     }
 
@@ -73,7 +72,7 @@ mod epic_info {
         epic_label: &str,
     ) -> Result<Vec<Story>, Box<dyn std::error::Error>> {
         let response = request_project(format!(
-            "stories?with_label={epic_label}&fields=:default,blocked_story_ids",
+            "stories?with_label={epic_label}",
             epic_label = epic_label,
         ))
         .await?;
@@ -239,7 +238,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Fetching blockers for each story...");
     for mut story in &mut stories {
-        // TODO don't fetch blockers for stories with no blocker ids
         story.blockers = Some(epic_info::get_blockers_for_story_id(&story.id).await?);
     }
 
