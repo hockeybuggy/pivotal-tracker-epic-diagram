@@ -1,6 +1,5 @@
 mod epic_info {
     use serde::{Deserialize, Serialize};
-    // use std::collections::HashMap;
 
     const BASE_URL: &str = "https://www.pivotaltracker.com/services/v5";
 
@@ -39,6 +38,13 @@ mod epic_info {
         pub url: String,
         pub current_state: StoryState,
         pub blocked_story_ids: Vec<u64>,
+        pub blockers: Option<Vec<Blocker>>,
+    }
+
+    #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+    pub struct Blocker {
+        pub id: u64,
+        pub story_id: u64,
     }
 
     async fn request_project(
@@ -64,38 +70,26 @@ mod epic_info {
         return Ok(epics);
     }
 
-    // fn reverse_blocker_links(stories: Vec<Story>) -> Vec<Story> {
-    //     let mut story_id_map = HashMap::new();
-
-    //     for s in stories.iter() {
-    //         story_id_map.insert(s.id, s);
-    //     }
-
-    //     for s in stories.iter() {
-    //         for blocked_id in s.blocked_story_ids {
-    //             match story_id_map.get(&blocked_id) {
-    //                 Some(blocking_story) => {}
-    //                 None => {}
-    //             }
-    //         }
-    //     }
-
-    //     return story_id_map.into_iter().map(|(_, s)| *s).collect();
-    // }
-
     pub async fn get_stories_with_label(
         epic_label: &str,
     ) -> Result<Vec<Story>, Box<dyn std::error::Error>> {
         let response = request_project(format!(
-            "stories?with_label={}&fields=:default,blocked_story_ids",
-            epic_label
+            "stories?with_label={epic_label}&fields=:default,blocked_story_ids",
+            epic_label = epic_label,
         ))
         .await?;
         let stories: Vec<Story> = response.json().await?;
-
-        // let augmented_stories = reverse_blocker_links(stories);
-        // return Ok(augmented_stories);
         return Ok(stories);
+    }
+
+    pub async fn get_blockers_for_story_id(
+        story_id: &u64,
+    ) -> Result<Vec<Blocker>, Box<dyn std::error::Error>> {
+        let response =
+            request_project(format!("stories/{story_id}/blockers", story_id = story_id)).await?;
+        let blockers: Vec<Blocker> = response.json().await?;
+        // dbg!(&blockers);
+        return Ok(blockers);
     }
 }
 
@@ -109,6 +103,7 @@ mod diagram_text_emitter {
             \tclassDef DONE fill:#e3fcef,stroke:#064;\n\
             "
         .to_owned();
+        // TODO more colours
     }
 
     fn story_node(story: &epic_info::Story) -> String {
@@ -118,16 +113,17 @@ mod diagram_text_emitter {
             &epic_info::StoryState::Delivered => ":::DONE",
             &epic_info::StoryState::Finished => ":::DONE",
             _ => "",
+            // TODO no default
         };
         let link = format!("click {} '{}' '{}'", &story.id, &story.url, &story.name);
-        let deps = &story
-            .blocked_story_ids
-            .iter()
-            .map(|blocked_id| {
-                return format!("\t{from} --> {to}\n", from = &story.id, to = blocked_id);
-            })
-            .collect::<Vec<String>>()
-            .join("");
+        let deps = match &story.blockers {
+            Some(blockers) => blockers
+                .iter()
+                .map(|blocker| format!("\t{from} --> {to}\n", from = &story.id, to = blocker.id))
+                .collect::<Vec<String>>()
+                .join(""),
+            None => "".to_owned(),
+        };
 
         return format!(
             "\
@@ -168,7 +164,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         panic!("Error: Found more than one epic matching label.")
     }
 
-    let stories = epic_info::get_stories_with_label(&epic_label).await?;
+    println!("Fetching stories from Tracker...");
+    let mut stories = epic_info::get_stories_with_label(&epic_label).await?;
+
+    println!("Fetching blockers for each story...");
+    for mut story in &mut stories {
+        story.blockers = Some(epic_info::get_blockers_for_story_id(&story.id).await?);
+    }
 
     let dot_diagram: String = diagram_text_emitter::dot_representation(&epics[0], &stories);
 
