@@ -41,10 +41,11 @@ mod epic_info {
         pub blockers: Option<Vec<Blocker>>,
     }
 
-    #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+    #[derive(Serialize, Deserialize, Debug)]
     pub struct Blocker {
         pub id: u64,
         pub story_id: u64,
+        pub description: String,
     }
 
     async fn request_project(
@@ -91,6 +92,9 @@ mod epic_info {
 }
 
 mod diagram_text_emitter {
+    use lazy_static::lazy_static;
+    use regex::Regex;
+
     use super::epic_info;
 
     const GREY: &str = "GREY";
@@ -102,19 +106,20 @@ mod diagram_text_emitter {
     fn prelude() -> String {
         // Colours based on this page: https://www.pivotaltracker.com/help/articles/story_states/
         let colour_classes: String = [
-            (GREY, "#e0e2e5", "#c4c5c5"),
-            (BLUE, "#507bbd", "#2959a4"),
-            (YELLOW, "#f5b04f", "#fc9d17"),
-            (GREEN, "#94c37f", "#5fa640"),
-            (RED, "#e87450", "#ec4d22"),
+            (GREY, "#e0e2e5", "#c4c5c5", "#000"),
+            (BLUE, "#507bbd", "#2959a4", "#fff"),
+            (YELLOW, "#f5b04f", "#fc9d17", "#fff"),
+            (GREEN, "#94c37f", "#5fa640", "#fff"),
+            (RED, "#e87450", "#ec4d22", "#fff"),
         ]
         .iter()
-        .map(|(name, fill, stroke)| {
+        .map(|(name, fill, stroke, colour)| {
             format!(
-                "\tclassDef {name} fill:{fill},stroke:{stroke};\n",
+                "\tclassDef {name} fill:{fill},stroke:{stroke},color:{colour};\n",
                 name = name,
                 fill = fill,
                 stroke = stroke,
+                colour = colour,
             )
         })
         .collect::<Vec<String>>()
@@ -127,7 +132,16 @@ mod diagram_text_emitter {
             ",
             colour_classes = colour_classes
         );
-        // TODO more colours
+    }
+
+    fn get_ticket_numbers_from_blocker_description(blocker_desc: &str) -> Vec<String> {
+        lazy_static! {
+            static ref SHORT_TAG_REGEX: Regex = Regex::new(r"\#([0-9]+)").unwrap();
+        }
+        return SHORT_TAG_REGEX
+            .captures_iter(blocker_desc)
+            .map(|cap| cap.get(1).map_or("".to_owned(), |m| m.as_str().to_owned()))
+            .collect();
     }
 
     fn story_node(story: &epic_info::Story) -> String {
@@ -144,17 +158,29 @@ mod diagram_text_emitter {
         };
         // Double quotes will prevent the file from parsing
         let safe_name = &story.name.replace("\"", "'");
-        let link = format!("click {} \"{}\" \"{}\"", &story.id, &story.url, &safe_name);
+        let link = format!(
+            "click {} \"{}\" \"{}\" _blank",
+            &story.id, &story.url, &safe_name
+        );
         let deps = match &story.blockers {
             Some(blockers) => blockers
                 .iter()
                 .map(|blocker| {
-                    format!(
-                        "\t{from} --> {to}\n",
-                        from = &story.id,
-                        to = blocker.story_id
-                    )
+                    let blocking_tickets =
+                        get_ticket_numbers_from_blocker_description(&blocker.description);
+                    dbg!(&blocking_tickets);
+                    blocking_tickets
+                        .iter()
+                        .map(|blocking_ticket_id| {
+                            format!(
+                                "\t{from} --> {to}\n",
+                                from = &story.id,
+                                to = blocking_ticket_id
+                            )
+                        })
+                        .collect::<Vec<String>>()
                 })
+                .flatten()
                 .collect::<Vec<String>>()
                 .join(""),
             None => "".to_owned(),
@@ -204,6 +230,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Fetching blockers for each story...");
     for mut story in &mut stories {
+        // TODO don't fetch blockers for stories with no blocker ids
         story.blockers = Some(epic_info::get_blockers_for_story_id(&story.id).await?);
     }
 
