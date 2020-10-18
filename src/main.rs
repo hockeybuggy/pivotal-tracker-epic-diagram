@@ -137,11 +137,21 @@ mod diagram_text_emitter {
     fn get_ticket_numbers_from_blocker_description(blocker_desc: &str) -> Vec<String> {
         lazy_static! {
             static ref SHORT_TAG_REGEX: Regex = Regex::new(r"\#([0-9]+)").unwrap();
+            static ref FULL_URL_REGEX: Regex =
+                Regex::new(r"https://www.pivotaltracker.com/story/show/([0-9]+)").unwrap();
         }
-        return SHORT_TAG_REGEX
+        let mut tickets: Vec<String> = Vec::new();
+        let mut short_tag_ticket_ids = SHORT_TAG_REGEX
             .captures_iter(blocker_desc)
             .map(|cap| cap.get(1).map_or("".to_owned(), |m| m.as_str().to_owned()))
-            .collect();
+            .collect::<Vec<String>>();
+        tickets.append(&mut short_tag_ticket_ids);
+        let mut full_url_ticket_ids = FULL_URL_REGEX
+            .captures_iter(blocker_desc)
+            .map(|cap| cap.get(1).map_or("".to_owned(), |m| m.as_str().to_owned()))
+            .collect::<Vec<String>>();
+        tickets.append(&mut full_url_ticket_ids);
+        return tickets;
     }
 
     fn story_node(story: &epic_info::Story) -> String {
@@ -168,14 +178,13 @@ mod diagram_text_emitter {
                 .map(|blocker| {
                     let blocking_tickets =
                         get_ticket_numbers_from_blocker_description(&blocker.description);
-                    dbg!(&blocking_tickets);
                     blocking_tickets
                         .iter()
                         .map(|blocking_ticket_id| {
                             format!(
-                                "\t{from} --> {to}\n",
+                                "\t{to} --> {from}\n",
+                                to = blocking_ticket_id,
                                 from = &story.id,
-                                to = blocking_ticket_id
                             )
                         })
                         .collect::<Vec<String>>()
@@ -241,13 +250,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Writing Diagram to file...");
 
     let mut file = match File::create(&path) {
-        Err(why) => panic!("couldn't create {}: {}", display, why),
+        Err(why) => panic!("Couldn't create {}: {}", display, why),
         Ok(file) => file,
     };
 
     match file.write_all(dot_diagram.as_bytes()) {
-        Err(why) => panic!("couldn't write to {}: {}", display, why),
-        Ok(_) => println!("successfully wrote to {}", display),
+        Err(why) => panic!("Couldn't write to {}: {}", display, why),
+        Ok(_) => println!("Successfully wrote to {}", display),
     }
 
     return Ok(());
