@@ -65,8 +65,6 @@ mod epic_info {
     ) -> Result<Vec<Epic>, Box<dyn std::error::Error>> {
         let response = request_project(format!("/epics?filter={}", label)).await?;
         let epics: Vec<Epic> = response.json().await?;
-        println!("{:?}", epics);
-
         return Ok(epics);
     }
 
@@ -88,7 +86,6 @@ mod epic_info {
         let response =
             request_project(format!("stories/{story_id}/blockers", story_id = story_id)).await?;
         let blockers: Vec<Blocker> = response.json().await?;
-        // dbg!(&blockers);
         return Ok(blockers);
     }
 }
@@ -96,30 +93,68 @@ mod epic_info {
 mod diagram_text_emitter {
     use super::epic_info;
 
+    const GREY: &str = "GREY";
+    const BLUE: &str = "BLUE";
+    const YELLOW: &str = "YELLOW";
+    const GREEN: &str = "GREEN";
+    const RED: &str = "RED";
+
     fn prelude() -> String {
-        return "\
+        // Colours based on this page: https://www.pivotaltracker.com/help/articles/story_states/
+        let colour_classes: String = [
+            (GREY, "#e0e2e5", "#c4c5c5"),
+            (BLUE, "#507bbd", "#2959a4"),
+            (YELLOW, "#f5b04f", "#fc9d17"),
+            (GREEN, "#94c37f", "#5fa640"),
+            (RED, "#e87450", "#ec4d22"),
+        ]
+        .iter()
+        .map(|(name, fill, stroke)| {
+            format!(
+                "\tclassDef {name} fill:{fill},stroke:{stroke};\n",
+                name = name,
+                fill = fill,
+                stroke = stroke,
+            )
+        })
+        .collect::<Vec<String>>()
+        .join("");
+
+        return format!(
+            "\
             graph TD\n\
-            \tclassDef STARTED fill:#deebff,stroke:0747a6;\n\
-            \tclassDef DONE fill:#e3fcef,stroke:#064;\n\
-            "
-        .to_owned();
+            {colour_classes}\
+            ",
+            colour_classes = colour_classes
+        );
         // TODO more colours
     }
 
     fn story_node(story: &epic_info::Story) -> String {
         let node_id = format!("{}", &story.id);
         let status = match &story.current_state {
-            &epic_info::StoryState::Accepted => ":::DONE",
-            &epic_info::StoryState::Delivered => ":::DONE",
-            &epic_info::StoryState::Finished => ":::DONE",
-            _ => "",
-            // TODO no default
+            &epic_info::StoryState::Accepted => format!(":::{}", &GREEN),
+            &epic_info::StoryState::Delivered => format!(":::{}", &GREEN),
+            &epic_info::StoryState::Finished => format!(":::{}", &GREEN),
+            &epic_info::StoryState::Started => format!(":::{}", &BLUE),
+            &epic_info::StoryState::Rejected => format!(":::{}", &RED),
+            &epic_info::StoryState::Planned => format!(":::{}", &GREY),
+            &epic_info::StoryState::Unstarted => format!(":::{}", &GREY),
+            &epic_info::StoryState::Unscheduled => format!(":::{}", &GREY),
         };
-        let link = format!("click {} '{}' '{}'", &story.id, &story.url, &story.name);
+        // Double quotes will prevent the file from parsing
+        let safe_name = &story.name.replace("\"", "'");
+        let link = format!("click {} \"{}\" \"{}\"", &story.id, &story.url, &safe_name);
         let deps = match &story.blockers {
             Some(blockers) => blockers
                 .iter()
-                .map(|blocker| format!("\t{from} --> {to}\n", from = &story.id, to = blocker.id))
+                .map(|blocker| {
+                    format!(
+                        "\t{from} --> {to}\n",
+                        from = &story.id,
+                        to = blocker.story_id
+                    )
+                })
                 .collect::<Vec<String>>()
                 .join(""),
             None => "".to_owned(),
@@ -188,5 +223,5 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(_) => println!("successfully wrote to {}", display),
     }
 
-    Ok(())
+    return Ok(());
 }
