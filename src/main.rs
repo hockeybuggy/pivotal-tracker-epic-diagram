@@ -14,7 +14,7 @@ mod epic_info {
     pub enum StoryState {
         #[serde(alias = "accepted")]
         Accepted,
-        #[serde(alias = "delieved")]
+        #[serde(alias = "delivered")]
         Delivered,
         #[serde(alias = "finished")]
         Finished,
