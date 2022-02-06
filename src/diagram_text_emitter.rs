@@ -34,7 +34,7 @@ fn prelude() -> String {
     return format!(
         "\
             graph TD\n\
-            {colour_classes}\
+            {colour_classes}\n\
             ",
         colour_classes = colour_classes
     );
@@ -73,11 +73,13 @@ fn story_node(story: &epic_info::Story) -> String {
         &epic_info::StoryState::Unscheduled => format!(":::{}", &GREY),
     };
     // Double quotes will prevent the file from parsing
-    let safe_name = &story.name.replace("\"", "'");
-    let link = format!(
-        "click {} \"{}\" \"{}\" _blank",
-        &story.id, &story.url, &safe_name
-    );
+    // let safe_name = &story.name.replace("\"", "'");
+    // let link = format!(
+    //     "click {} \"{}\" \"{}\" _blank",
+    //     &story.id, &story.url, &safe_name
+    // );
+    let link = format!("click {} call ticketNodeCallback()", &story.id);
+
     let deps = match &story.blockers {
         Some(blockers) => blockers
             .iter()
