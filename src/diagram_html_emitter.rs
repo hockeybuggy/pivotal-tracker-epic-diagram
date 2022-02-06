@@ -1,3 +1,5 @@
+use chrono::{DateTime, Local, SecondsFormat};
+
 use super::diagram_text_emitter;
 use super::epic_info;
 
@@ -56,7 +58,7 @@ fn head() -> String {
     </script>
 
   <style>
-    body, main {
+    html, body, main {
       height: 100%;
     }
 
@@ -74,6 +76,9 @@ fn head() -> String {
       display: flex;
       flex-direction: row;
       border: solid 1px black;
+    }
+    nav h1 {
+      margin: 0.25rem 1rem;
     }
 
     .diagram-container {
@@ -110,13 +115,28 @@ fn body_postlude() -> String {
     return format!("</body>\n");
 }
 
-fn nav() -> String {
-    return r#"
-    <nav>
-      <h1>NAME OF EPIC</h1>
-    </nav>
-    "#
-    .to_string();
+fn nav(epic: &epic_info::Epic) -> String {
+    return format!(
+        "\
+        <nav>\
+          <h1>Epic: {}</h1>\
+        </nav>\
+    ",
+        &epic.name,
+    );
+}
+
+fn footer() -> String {
+    let local: DateTime<Local> = Local::now();
+    let formatted_date = local.to_rfc3339_opts(SecondsFormat::Secs, true);
+    return format!(
+        "\
+        <footer>\
+          <p>generated on: {}</p>\
+        </footer>\
+    ",
+        formatted_date,
+    );
 }
 
 fn main(epic: &epic_info::Epic, stories: &Vec<epic_info::Story>) -> String {
@@ -125,14 +145,6 @@ fn main(epic: &epic_info::Epic, stories: &Vec<epic_info::Story>) -> String {
       <div class="diagram-container">
         <div class="mermaid">
         "#;
-    // let diagram_prelude = r#"
-    //   <div class="diagram-container">
-    //     <textarea class="mermaid" rows="40", cols="80">
-    //     "#;
-    // let diagram_postlude = r#"
-    //     </textarea>
-    //   </div>
-    //     "#;
     let diagram_postlude = r#"
         </div>
       </div>
@@ -154,12 +166,13 @@ fn main(epic: &epic_info::Epic, stories: &Vec<epic_info::Story>) -> String {
 
 pub fn generate_page(epic: &epic_info::Epic, stories: &Vec<epic_info::Story>) -> String {
     return format!(
-        "{}\n{}\n{}\n{}\n{}\n{}\n{}",
+        "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
         prelude(),
         head(),
         body_prelude(),
-        nav(),
+        nav(&epic),
         main(&epic, &stories),
+        footer(),
         body_postlude(),
         postlude()
     );
