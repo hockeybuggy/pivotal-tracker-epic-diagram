@@ -1,6 +1,3 @@
 /target
 .env
-node_modules
-*.mmd
-*.png
-*.svg
+epic_diagram.html
