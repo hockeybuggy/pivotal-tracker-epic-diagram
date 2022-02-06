@@ -9,11 +9,13 @@ fn story_details(story: &epic_info::Story) -> String {
             <div id='story-details-{story_id}' class='not-selected'>\
                 <p>id: <a href='{story_url}' target=_blank>{story_id}</a></p>\
                 <p>name: {name}</p>\
+                <p>current state: {current_state:?}</p>\
             </div>\
             \n",
         story_id = &story.id,
         story_url = &story.url,
         name = &story.name,
+        current_state = &story.current_state,
     );
 }
 
@@ -30,6 +32,11 @@ fn head() -> String {
     <script>
         var currentNode = null;
 
+        function hideEmptyState() {
+            let dom = document.getElementById("empty-state");
+            dom.className = "not-selected";
+        }
+
         function hideStory(storyId) {
             let dom = document.getElementById("story-details-" + storyId);
             dom.className = "not-selected";
@@ -43,6 +50,8 @@ fn head() -> String {
         function ticketNodeCallback(storyId) {
             if (currentNode) {
                 hideStory(currentNode);
+            } else {
+                hideEmptyState();
             }
             showStory(storyId);
             currentNode = storyId;
@@ -69,7 +78,7 @@ fn head() -> String {
 
     main {
       display: flex;
-      flex-direction: row;
+      flex-direction: column-reverse;
     }
 
     nav {
@@ -85,9 +94,12 @@ fn head() -> String {
       border: solid 1px black;
       flex-grow: 1;
     }
-    .side-panel {
+    .panel {
+      padding: 0.5rem;
       border: solid 1px black;
-      width: 33%;
+      border-top: none;
+      border-bottom: none;
+      min-height: 125px;
     }
 
     .not-selected {
@@ -150,9 +162,12 @@ fn main(epic: &epic_info::Epic, stories: &Vec<epic_info::Story>) -> String {
       </div>
         "#;
     let story_details_nodes: String = stories.into_iter().map(story_details).collect();
-    let side_panel = format!(
+    let panel = format!(
         r#"
-      <div class="side-panel">
+      <div class="panel">
+        <div id="empty-state">
+         <p>Click a story to see it's details.</p>
+        </div>
         {}
       </div>
         "#,
@@ -160,7 +175,7 @@ fn main(epic: &epic_info::Epic, stories: &Vec<epic_info::Story>) -> String {
     );
     return format!(
         "<main>{}\n{}\n{}\n{}\n</main>",
-        diagram_prelude, dot_diagram, diagram_postlude, side_panel
+        diagram_prelude, dot_diagram, diagram_postlude, panel
     );
 }
 
