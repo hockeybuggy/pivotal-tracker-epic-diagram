@@ -1,16 +1,17 @@
-# Pivotal tracker epic diagrams
+# Pivotal Tracker epic diagrams
 
-This repo creates a diagram of tickets and their blockers for a particular epic.
+This repo creates a diagram of stories and their blockers for a particular Epic
+in Pivotal Tracker.
 
 
 ## How does this work
 
 This project makes calls to Pivotal tracker's API to fetch all the stories and
-their blockers. Once these have been retrieved we find the ticket ids within
-the blocker's descriptions. Finally we generate a `.mmd` file which is passed
-to a tool called [Mermaid.js](https://mermaid-js.github.io/mermaid/#/) which
-takes this file and generates both a `.png` version of the dependency graph
-(see example below) and an `.svg` version of the dependency graph.
+their blockers. Once these have been retrieved we find the story ids within
+the blocker's descriptions. We use that to generate a
+[Mermaid.js](https://mermaid-js.github.io/mermaid/#/) based diagram hosted in
+an html page. This page will show basic details of the story when the
+corresponding node in the diagram is selected.
 
 ![Example png diagram](./examples/diagram.png)
 
@@ -24,29 +25,30 @@ environment variables the program starts.
 - `PROJECT_ID` - The project id that contains the epic.
 - `EPIC_LABEL` - The label of the Epic you want to draw
 
+If you're getting started you can run:
+
+```sh
+cp .env .env.sample
+```
+
 
 ## Dependencies
 
 This program is written in the Rust programming language. This can be installed
-with the tool `rustup`. This repo also assumes that you use `nvm` to manage
-node versions.
+with the tool `rustup`.
 
 
-## To generate diagrams
+## To generate diagram page
+
+The output page can be generated with:
 
 ```
-nvm use
-npm install
-./generate
+cargo run
 ```
 
 
 ## Possible improvements
 
-- [ ] Turn this into a webpage
-    - The diagram generated should have a hover state that doesn't work when
-      rendered as an SVG. If this was a webpage (even locally hosted) this
-      could allow us to have the diagrams "refreshable" via a button in a
-      frontend
 - [ ] We could save some API calls by fetching the blocker ids when we get the
       list of stories and not make API calls for stories with no blocker ids.
+- [ ] Make the project a SPA that makes it's own requests and generates it's own pages.
