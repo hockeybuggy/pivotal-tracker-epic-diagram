@@ -45,6 +45,8 @@ fn get_ticket_numbers_from_blocker_description(blocker_desc: &str) -> Vec<String
         static ref SHORT_TAG_REGEX: Regex = Regex::new(r"\#([0-9]+)").unwrap();
         static ref FULL_URL_REGEX: Regex =
             Regex::new(r"https://www.pivotaltracker.com/story/show/([0-9]+)").unwrap();
+        static ref ALTERNATE_URL_REGEX: Regex =
+            Regex::new(r"https://www.pivotaltracker.com/n/projects/([0-9]+)/stories/([0-9]+)").unwrap();
     }
     let mut tickets: Vec<String> = Vec::new();
     let mut short_tag_ticket_ids = SHORT_TAG_REGEX
@@ -57,6 +59,11 @@ fn get_ticket_numbers_from_blocker_description(blocker_desc: &str) -> Vec<String
         .map(|cap| cap.get(1).map_or("".to_owned(), |m| m.as_str().to_owned()))
         .collect::<Vec<String>>();
     tickets.append(&mut full_url_ticket_ids);
+    let mut alternate_full_url_ticket_ids = ALTERNATE_URL_REGEX
+        .captures_iter(blocker_desc)
+        .map(|cap| cap.get(2).map_or("".to_owned(), |m| m.as_str().to_owned()))
+        .collect::<Vec<String>>();
+    tickets.append(&mut alternate_full_url_ticket_ids);
     return tickets;
 }
 
