@@ -3,18 +3,36 @@ use chrono::{DateTime, Local, SecondsFormat};
 use super::diagram_text_emitter;
 use super::epic_info;
 
+fn format_labels(labels: &Option<Vec<epic_info::Label>>) -> String {
+    let label_names = match labels {
+        Some(labels) => labels
+            .iter()
+            .map(|l| {
+                format!("<span>{}</span>", l.name)
+            })
+            .collect::<Vec<String>>()
+            .join(", "),
+        None => "".to_owned(),
+    };
+
+    return label_names;
+}
+
 fn story_details(story: &epic_info::Story) -> String {
+    let label_names = format_labels(&story.labels);
     return format!(
         "\
             <div id='story-details-{story_id}' class='not-selected'>\
                 <p>id: <a href='{story_url}' target=_blank>{story_id}</a></p>\
                 <p>name: {name}</p>\
+                <p>labels: {labels}</p>\
                 <p>current state: {current_state:?}</p>\
             </div>\
             \n",
         story_id = &story.id,
         story_url = &story.url,
         name = &story.name,
+        labels = label_names,
         current_state = &story.current_state,
     );
 }

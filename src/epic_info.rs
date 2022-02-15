@@ -37,6 +37,7 @@ pub struct Story {
     pub url: String,
     pub current_state: StoryState,
     pub blockers: Option<Vec<Blocker>>,
+    pub labels: Option<Vec<Label>>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -44,6 +45,13 @@ pub struct Blocker {
     pub id: u64,
     pub story_id: u64,
     pub description: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Label {
+    pub id: u64,
+    pub kind: String,
+    pub name: String,
 }
 
 async fn request_project(
@@ -88,3 +96,11 @@ pub async fn get_blockers_for_story_id(
     return Ok(blockers);
 }
 
+pub async fn get_labels_for_story_id(
+    story_id: &u64,
+) -> Result<Vec<Label>, Box<dyn std::error::Error>> {
+    let response =
+        request_project(format!("stories/{story_id}/labels", story_id = story_id)).await?;
+    let labels: Vec<Label> = response.json().await?;
+    return Ok(labels);
+}

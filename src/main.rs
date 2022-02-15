@@ -28,6 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Fetching blockers for each story...");
     for mut story in &mut stories {
         story.blockers = Some(epic_info::get_blockers_for_story_id(&story.id).await?);
+        story.labels = Some(epic_info::get_labels_for_story_id(&story.id).await?);
     }
 
     let page: String = diagram_html_emitter::generate_page(&epics[0], &stories);
