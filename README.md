@@ -13,7 +13,7 @@ the blocker's descriptions. We use that to generate a
 an html page. This page will show basic details of the story when the
 corresponding node in the diagram is selected.
 
-![Example png diagram](./examples/diagram.png)
+![Example png diagram](./examples/diagram_v2.png?t=0217202201729)
 
 
 ## Configuration
@@ -51,4 +51,4 @@ cargo run
 
 - [ ] We could save some API calls by fetching the blocker ids when we get the
       list of stories and not make API calls for stories with no blocker ids.
-- [ ] Make the project a SPA that makes it's own requests and generates it's own pages.
+- [ ] Make the project a SPA that makes its own requests and generates its own pages.

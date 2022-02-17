@@ -144,7 +144,7 @@ fn main(epic: &epic_info::Epic, stories: &Vec<epic_info::Story>) -> String {
         r#"
       <div class="panel">
         <div id="empty-state">
-         <p>Click a story to see it's details.</p>
+         <p>Click a story to see its details.</p>
         </div>
         {}
       </div>
