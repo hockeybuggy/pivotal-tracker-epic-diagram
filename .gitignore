@@ -1,3 +1,4 @@
 /target
 .env
 epic_diagram.html
+.DS_Store

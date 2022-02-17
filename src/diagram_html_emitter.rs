@@ -1,5 +1,5 @@
 use chrono::{DateTime, Local, SecondsFormat};
-
+use std::fs;
 use super::diagram_text_emitter;
 use super::epic_info;
 
@@ -42,7 +42,8 @@ fn prelude() -> String {
 }
 
 fn head() -> String {
-    return r#"
+    let css = fs::read_to_string("src/styles.css").unwrap();
+    return format!(r#"
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
@@ -50,87 +51,44 @@ fn head() -> String {
     <script>
         var currentNode = null;
 
-        function hideEmptyState() {
+        function hideEmptyState() {{
             let dom = document.getElementById("empty-state");
             dom.className = "not-selected";
-        }
+        }}
 
-        function hideStory(storyId) {
+        function hideStory(storyId) {{
             let dom = document.getElementById("story-details-" + storyId);
             dom.className = "not-selected";
-        }
+        }}
 
-        function showStory(storyId) {
+        function showStory(storyId) {{
             let dom = document.getElementById("story-details-" + storyId);
             dom.className = "selected";
-        }
+        }}
 
-        function ticketNodeCallback(storyId) {
-            if (currentNode) {
+        function ticketNodeCallback(storyId) {{
+            if (currentNode) {{
                 hideStory(currentNode);
-            } else {
+            }} else {{
                 hideEmptyState();
-            }
+            }}
             showStory(storyId);
             currentNode = storyId;
-        }
+        }}
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <script>
-      mermaid.initialize({
+      mermaid.initialize({{
           startOnLoad: true,
           securityLevel: 'loose',
-      });
+      }});
     </script>
-
   <style>
-    html, body, main {
-      height: 100%;
-    }
-
-    body {
-      display: flex;
-      flex-direction: column;
-    }
-
-    main {
-      display: flex;
-      flex-direction: column-reverse;
-    }
-
-    nav {
-      display: flex;
-      flex-direction: row;
-      border: solid 1px black;
-    }
-    nav h1 {
-      margin: 0.25rem 1rem;
-    }
-
-    .diagram-container {
-      border: solid 1px black;
-      flex-grow: 1;
-    }
-    .panel {
-      padding: 0.5rem;
-      border: solid 1px black;
-      border-top: none;
-      border-bottom: none;
-      min-height: 125px;
-    }
-
-    .not-selected {
-      display: none;
-    }
-    .selected {
-      display: block;
-    }
-
+      {}
   </style>
   </head>
-  "#
-    .to_string();
+  "#, css);
 }
 
 fn postlude() -> String {
@@ -142,12 +100,13 @@ fn body_prelude() -> String {
 }
 
 fn body_postlude() -> String {
-    return format!("</body>\n");
+    return format!("\n</body>\n");
 }
 
 fn nav(epic: &epic_info::Epic) -> String {
     return format!(
         "\
+        <div class='wrapper'>\
         <nav>\
           <h1>Epic: {}</h1>\
         </nav>\
@@ -161,6 +120,7 @@ fn footer() -> String {
     let formatted_date = local.to_rfc3339_opts(SecondsFormat::Secs, true);
     return format!(
         "\
+        </div>\
         <footer>\
           <p>generated on: {}</p>\
         </footer>\
@@ -184,7 +144,7 @@ fn main(epic: &epic_info::Epic, stories: &Vec<epic_info::Story>) -> String {
         r#"
       <div class="panel">
         <div id="empty-state">
-         <p>Click a story to see it's details.</p>
+         <p>Click a story to see its details.</p>
         </div>
         {}
       </div>
@@ -193,7 +153,7 @@ fn main(epic: &epic_info::Epic, stories: &Vec<epic_info::Story>) -> String {
     );
     return format!(
         "<main>{}\n{}\n{}\n{}\n</main>",
-        diagram_prelude, dot_diagram, diagram_postlude, panel
+        panel, diagram_prelude, dot_diagram, diagram_postlude
     );
 }
 

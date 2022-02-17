@@ -1,0 +1,49 @@
+html,
+body,
+main {
+  height: 100%;
+  font-size: 16px;
+  font-family: 'Open Sans', Arial, Helvetica, sans-serif;
+}
+
+body {
+  background-color: #212121;
+}
+
+.wrapper {
+  background-color: white;
+  box-shadow: 1px 1px 5px 10px rgba(0,0,0,0.2);
+  border-radius: 5px;
+}
+
+nav {
+  background-color: rgb(47, 27, 76);
+  border-radius: 5px 5px 0 0;
+  color: white;
+  padding: 1rem 1.2rem;
+}
+
+nav h1 {
+  margin: 0.25rem 1rem;
+}
+
+footer {
+  font-size: 0.85rem;
+  color: #ddd;
+}
+
+.diagram-container {
+  flex-grow: 1;
+}
+.panel {
+  padding: 0.5rem;
+  border-bottom: 1px solid #cbcad3;
+  min-height: 125px;
+}
+
+.not-selected {
+  display: none;
+}
+.selected {
+  display: block;
+}
