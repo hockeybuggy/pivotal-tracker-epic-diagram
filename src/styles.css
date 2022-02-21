@@ -3,7 +3,13 @@ body,
 main {
   height: 100%;
   font-size: 16px;
-  font-family: 'Open Sans', Arial, Helvetica, sans-serif;
+  font-family: "Open Sans", Arial, Helvetica, sans-serif;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 body {
@@ -11,9 +17,14 @@ body {
 }
 
 .wrapper {
+  display: flex;
+  flex-direction: column;
+
   background-color: white;
-  box-shadow: 1px 1px 5px 10px rgba(0,0,0,0.2);
+  box-shadow: 1px 1px 5px 10px rgba(0, 0, 0, 0.2);
   border-radius: 5px;
+
+  min-height: 80%;
 }
 
 nav {
@@ -33,12 +44,21 @@ footer {
 }
 
 .diagram-container {
+  display: flex;
   flex-grow: 1;
 }
+
 .panel {
   padding: 0.5rem;
   border-bottom: 1px solid #cbcad3;
   min-height: 125px;
+}
+
+.mermaid {
+  display: flex;
+}
+.mermaid svg {
+  height: 100%;
 }
 
 .not-selected {
