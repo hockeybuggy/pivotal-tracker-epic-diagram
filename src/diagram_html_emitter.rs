@@ -1,15 +1,13 @@
-use chrono::{DateTime, Local, SecondsFormat};
-use std::fs;
 use super::diagram_text_emitter;
 use super::epic_info;
+use chrono::{DateTime, Local, SecondsFormat};
+use std::fs;
 
 fn format_labels(labels: &Option<Vec<epic_info::Label>>) -> String {
     let label_names = match labels {
         Some(labels) => labels
             .iter()
-            .map(|l| {
-                format!("<span>{}</span>", l.name)
-            })
+            .map(|l| format!("<span>{}</span>", l.name))
             .collect::<Vec<String>>()
             .join(", "),
         None => "".to_owned(),
@@ -42,53 +40,35 @@ fn prelude() -> String {
 }
 
 fn head() -> String {
+    let ui_script = fs::read_to_string("src/ui.js").unwrap();
     let css = fs::read_to_string("src/styles.css").unwrap();
-    return format!(r#"
+    return format!(
+        r#"
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
 
-    <script>
-        var currentNode = null;
-
-        function hideEmptyState() {{
-            let dom = document.getElementById("empty-state");
-            dom.className = "not-selected";
-        }}
-
-        function hideStory(storyId) {{
-            let dom = document.getElementById("story-details-" + storyId);
-            dom.className = "not-selected";
-        }}
-
-        function showStory(storyId) {{
-            let dom = document.getElementById("story-details-" + storyId);
-            dom.className = "selected";
-        }}
-
-        function ticketNodeCallback(storyId) {{
-            if (currentNode) {{
-                hideStory(currentNode);
-            }} else {{
-                hideEmptyState();
-            }}
-            showStory(storyId);
-            currentNode = storyId;
-        }}
-    </script>
-
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+
     <script>
       mermaid.initialize({{
-          startOnLoad: true,
-          securityLevel: 'loose',
+        startOnLoad: true,
       }});
     </script>
-  <style>
-      {}
-  </style>
+
+    <script>
+      {ui_script}
+    </script>
+
+    <style>
+      {css}
+    </style>
   </head>
-  "#, css);
+  "#,
+        css = css,
+        ui_script = ui_script,
+    );
 }
 
 fn postlude() -> String {

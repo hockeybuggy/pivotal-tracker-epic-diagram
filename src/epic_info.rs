@@ -54,9 +54,7 @@ pub struct Label {
     pub name: String,
 }
 
-async fn request_project(
-    path: String,
-) -> Result<reqwest::Response, Box<dyn std::error::Error>> {
+async fn request_project(path: String) -> Result<reqwest::Response, Box<dyn std::error::Error>> {
     let tracker_token = std::env::var("PIVOTAL_TRACKER_TOKEN").unwrap();
     let project_id = std::env::var("PROJECT_ID").unwrap();
     let response = reqwest::Client::new()
@@ -67,9 +65,7 @@ async fn request_project(
     return Ok(response);
 }
 
-pub async fn get_epics_with_label(
-    label: &str,
-) -> Result<Vec<Epic>, Box<dyn std::error::Error>> {
+pub async fn get_epics_with_label(label: &str) -> Result<Vec<Epic>, Box<dyn std::error::Error>> {
     let response = request_project(format!("/epics?filter={}", label)).await?;
     let epics: Vec<Epic> = response.json().await?;
     return Ok(epics);
