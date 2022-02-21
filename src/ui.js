@@ -33,10 +33,22 @@ window.addEventListener("load", function () {
     var inner = svg.select("g");
     var zoom = d3
       .zoom()
+      // .clickDistance(20)
+      .filter(function (event) {
+        console.log("event", event);
+        switch (event.type) {
+          case "mousedown":
+            return event.button === 1;
+          case "wheel":
+            return event.button === 0;
+          default:
+            return false;
+        }
+      })
+      .scaleExtent([1 / 2, 8])
       .on("zoom", function (event) {
         inner.attr("transform", event.transform);
-      })
-      .clickDistance(20);
+      });
     svg.call(zoom);
   });
 });
