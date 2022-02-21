@@ -61,6 +61,10 @@ footer {
   height: 100%;
 }
 
+.mermaid svg .nodes .node {
+  cursor: pointer;
+}
+
 .not-selected {
   display: none;
 }

@@ -44,7 +44,6 @@ window.addEventListener("load", function () {
 
     // Bind new events
     // TODO add styling to the selected element
-    // TODO make it clear that the nodes are clickable
     svg.selectAll(".nodes").on("click", (e) => {
       let storyId;
       if (e.target.tagName === "rect") {
