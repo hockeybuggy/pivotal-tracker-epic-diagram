@@ -46,7 +46,8 @@ fn get_ticket_numbers_from_blocker_description(blocker_desc: &str) -> Vec<String
         static ref FULL_URL_REGEX: Regex =
             Regex::new(r"https://www.pivotaltracker.com/story/show/([0-9]+)").unwrap();
         static ref ALTERNATE_URL_REGEX: Regex =
-            Regex::new(r"https://www.pivotaltracker.com/n/projects/([0-9]+)/stories/([0-9]+)").unwrap();
+            Regex::new(r"https://www.pivotaltracker.com/n/projects/([0-9]+)/stories/([0-9]+)")
+                .unwrap();
     }
     let mut tickets: Vec<String> = Vec::new();
     let mut short_tag_ticket_ids = SHORT_TAG_REGEX
@@ -79,13 +80,6 @@ fn story_node(story: &epic_info::Story) -> String {
         &epic_info::StoryState::Unstarted => format!(":::{}", &GREY),
         &epic_info::StoryState::Unscheduled => format!(":::{}", &GREY),
     };
-    // Double quotes will prevent the file from parsing
-    // let safe_name = &story.name.replace("\"", "'");
-    // let link = format!(
-    //     "click {} \"{}\" \"{}\" _blank",
-    //     &story.id, &story.url, &safe_name
-    // );
-    let link = format!("click {} call ticketNodeCallback()", &story.id);
 
     let deps = match &story.blockers {
         Some(blockers) => blockers
@@ -113,12 +107,10 @@ fn story_node(story: &epic_info::Story) -> String {
     return format!(
         "\
             \t{node_id}{status}\n\
-            \t{link}\n\
             {deps}\
             \n",
         node_id = node_id,
         status = status,
-        link = link,
         deps = deps,
     );
 }

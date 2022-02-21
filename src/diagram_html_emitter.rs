@@ -54,7 +54,6 @@ fn head() -> String {
     <script>
       mermaid.initialize({{
         startOnLoad: true,
-        securityLevel: 'loose',
       }});
     </script>
 
