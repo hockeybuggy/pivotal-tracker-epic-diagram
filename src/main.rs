@@ -4,8 +4,8 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 
-use dotenv;
 use clap::{App, Arg};
+use dotenv;
 
 mod diagram_html_emitter;
 mod diagram_text_emitter;

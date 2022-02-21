@@ -1,4 +1,5 @@
-var currentNode = null;
+var currentStoryId = null;
+var currentNodeRectangle = null;
 
 function hideEmptyState() {
   let dom = document.getElementById("empty-state");
@@ -20,20 +21,35 @@ function showStory(storyId) {
   dom.className = "selected";
 }
 
-function ticketNodeClickedCallback(storyId) {
-  if (currentNode) {
-    hideStory(currentNode);
+function highlightSelectedNode(node) {
+  node.id = "highlight-this-node";
+}
+
+function unHighlightSelectedNode(node) {
+  node.id = "unhighlight-this-node";
+}
+
+function storyNodeClickedCallback(storyId, nodeRectangle) {
+  if (currentStoryId) {
+    hideStory(currentStoryId);
+    if (currentNodeRectangle) {
+      unHighlightSelectedNode(currentNodeRectangle);
+    }
   } else {
     hideEmptyState();
   }
-  if (currentNode !== storyId) {
+
+  if (currentStoryId !== storyId) {
     // If selecting a new story show it
     showStory(storyId);
-    currentNode = storyId;
+    highlightSelectedNode(nodeRectangle);
+    currentStoryId = storyId;
+    currentNodeRectangle = nodeRectangle;
   } else {
     // If the story is already selected de-select it.
     showEmptyState();
-    currentNode = null;
+    currentStoryId = null;
+    currentNodeRectangle = null;
   }
 }
 
@@ -42,16 +58,20 @@ window.addEventListener("load", function () {
   svgs.each(function () {
     var svg = d3.select(this);
 
-    // Bind new events
-    // TODO add styling to the selected element
+    // Bind click events to each of the story nodes. This will get the story id
+    // and the `rect` element within the `svg` this will then be used to select
+    // the story.
     svg.selectAll(".nodes").on("click", (e) => {
       let storyId;
+      let rectangle;
       if (e.target.tagName === "rect") {
+        rectangle = e.target;
         storyId = e.target.nextSibling.textContent;
       } else {
+        rectangle = e.target.parentNode.parentNode.parentNode.previousSibling;
         storyId = e.target.textContent;
       }
-      ticketNodeClickedCallback(storyId);
+      storyNodeClickedCallback(storyId, rectangle);
     });
 
     var inner = svg.select("g");

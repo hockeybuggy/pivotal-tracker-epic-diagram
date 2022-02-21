@@ -14,6 +14,7 @@ main {
 
 body {
   background-color: #212121;
+  margin: 0;
 }
 
 .wrapper {
@@ -24,7 +25,7 @@ body {
   box-shadow: 1px 1px 5px 10px rgba(0, 0, 0, 0.2);
   border-radius: 5px;
 
-  min-height: 80%;
+  min-height: 94%;
 }
 
 nav {
@@ -51,7 +52,7 @@ footer {
 .panel {
   padding: 0.5rem;
   border-bottom: 1px solid #cbcad3;
-  min-height: 125px;
+  min-height: 160px;
 }
 
 .mermaid {
@@ -63,6 +64,10 @@ footer {
 
 .mermaid svg .nodes .node {
   cursor: pointer;
+}
+
+.label-container#highlight-this-node {
+  filter: drop-shadow(0 0 8px #0ff);
 }
 
 .not-selected {
