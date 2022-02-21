@@ -23,7 +23,6 @@ environment variables the program starts.
 
 - `PIVOTAL_TRACKER_TOKEN` - API token for Pivotal tracker
 - `PROJECT_ID` - The project id that contains the epic.
-- `EPIC_LABEL` - The label of the Epic you want to draw
 
 If you're getting started you can run:
 
@@ -40,10 +39,17 @@ with the tool `rustup`.
 
 ## To generate diagram page
 
+### Command arguments
+
+| Argument | Description | Example |
+| --- | --- | --- |
+| `--epic` | The label of the Epic you want to draw | `--epic "project gutenberg"` |
+
+### Example command line
 The output page can be generated with:
 
 ```
-cargo run
+cargo run -- --epic "<your epic name>"
 ```
 
 

@@ -1,8 +1,11 @@
+extern crate clap;
+
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 
 use dotenv;
+use clap::{App, Arg};
 
 mod diagram_html_emitter;
 mod diagram_text_emitter;
@@ -11,8 +14,21 @@ mod epic_info;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
+    let matches = App::new("main")
+        .about("Creates a visual diagram of a Pivotal Tracker epic")
+        .arg(
+            Arg::with_name("epic_name")
+                .short("e")
+                .long("epic")
+                .help("The epic name in Pivotal Tracker")
+                .takes_value(true)
+                .required(true),
+        )
+        .get_matches();
+
     println!("Fetching epic from Tracker...");
-    let epic_label = std::env::var("EPIC_LABEL").unwrap();
+
+    let epic_label = matches.value_of("epic_name").unwrap();
     let epics = epic_info::get_epics_with_label(&epic_label).await?;
 
     // This fetch now seems to mostly function as a "does this epic exist" check.
