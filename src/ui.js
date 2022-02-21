@@ -42,10 +42,6 @@ window.addEventListener("load", function () {
   svgs.each(function () {
     var svg = d3.select(this);
 
-    // TODO check if this is needed
-    // Wrap the element in an extra `g`
-    svg.html("<g>" + svg.html() + "</g>");
-
     // Bind new events
     // TODO add styling to the selected element
     // TODO make it clear that the nodes are clickable
