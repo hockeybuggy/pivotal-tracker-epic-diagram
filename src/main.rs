@@ -1,4 +1,5 @@
 extern crate clap;
+extern crate sanitize_filename;
 
 use std::fs::File;
 use std::io::prelude::*;
@@ -49,7 +50,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let page: String = diagram_html_emitter::generate_page(&epics[0], &stories);
 
-    let path = Path::new("epic_diagram.html");
+    let file_name = sanitize_filename::sanitize(format!(
+        "epic_diagram-{}-{}.html", epics[0].id.to_string(), epics[0].name
+    ));
+    let path = Path::new(&file_name);
     let display = path.display();
     println!("Writing Diagram to file...");
 
