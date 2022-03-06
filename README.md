@@ -44,6 +44,7 @@ with the tool `rustup`.
 | Argument | Description | Example |
 | --- | --- | --- |
 | `--epic` | The label of the Epic you want to draw | `--epic "project gutenberg"` |
+| `--epic_id` | The ID of the Epic you want to draw | `--epic_id 12345` |
 
 ### Example command line
 The output page can be generated with:
