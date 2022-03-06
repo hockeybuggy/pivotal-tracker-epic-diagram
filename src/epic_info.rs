@@ -71,6 +71,12 @@ pub async fn get_epics_with_label(label: &str) -> Result<Vec<Epic>, Box<dyn std:
     return Ok(epics);
 }
 
+pub async fn get_epic_with_id(epic_id: &str) -> Result<Epic, Box<dyn std::error::Error>> {
+    let response = request_project(format!("/epics/{}", epic_id)).await?;
+    let epic: Epic = response.json().await?;
+    return Ok(epic);
+}
+
 pub async fn get_stories_with_label(
     epic_label: &str,
 ) -> Result<Vec<Story>, Box<dyn std::error::Error>> {
