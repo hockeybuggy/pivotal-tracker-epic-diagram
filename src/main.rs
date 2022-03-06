@@ -5,7 +5,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 
-use clap::{App, Arg};
+use clap::{Arg, ArgGroup, Command};
 use dotenv;
 
 mod diagram_html_emitter;
@@ -15,22 +15,41 @@ mod epic_info;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
-    let matches = App::new("main")
+    let matches = Command::new("main")
         .about("Creates a visual diagram of a Pivotal Tracker epic")
         .arg(
-            Arg::with_name("epic_name")
-                .short("e")
+            Arg::new("epic_name")
+                .short('e')
                 .long("epic")
                 .help("The epic name in Pivotal Tracker")
                 .takes_value(true)
-                .required(true),
+        )
+        .arg(
+            Arg::new("epic_id")
+                .short('i')
+                .long("epic_id")
+                .help("The epic ID in Pivotal Tracker")
+                .takes_value(true)
+        )
+        .group(
+            ArgGroup::new("epic_details")
+                .args(&["epic_name", "epic_id"])
+                .multiple(false)
+                .required(true)
         )
         .get_matches();
 
     println!("Fetching epic from Tracker...");
 
-    let epic_label = matches.value_of("epic_name").unwrap();
-    let epics = epic_info::get_epics_with_label(&epic_label).await?;
+    let mut epics = vec![];
+    let epic_label = matches.value_of("epic_name");
+    let epic_id = matches.value_of("epic_id");
+
+    if matches.is_present("epic_name") {
+        epics = epic_info::get_epics_with_label(epic_label.unwrap()).await?;
+    } else if matches.is_present("epic_id") {
+        epics = vec![epic_info::get_epic_with_id(epic_id.unwrap()).await?];
+    }
 
     // This fetch now seems to mostly function as a "does this epic exist" check.
     if epics.len() == 0 {
@@ -40,7 +59,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     println!("Fetching stories from Tracker...");
-    let mut stories = epic_info::get_stories_with_label(&epic_label).await?;
+    let mut stories = epic_info::get_stories_with_label(&epics[0].name).await?;
 
     println!("Fetching blockers for each story...");
     for mut story in &mut stories {
