@@ -3,7 +3,7 @@ use super::epic_info;
 use chrono::{DateTime, Local, SecondsFormat};
 use std::fs;
 
-fn story_labels(story_labels: &Option<Vec<epic_info::Label>>, epic_label: &str) -> String {
+fn format_story_labels(story_labels: &Option<Vec<epic_info::Label>>, epic_label: &str) -> String {
     let epic_lowercase = epic_label.to_lowercase();
     let labels_html = match story_labels {
         Some(story_labels) => story_labels
@@ -24,7 +24,7 @@ fn story_labels(story_labels: &Option<Vec<epic_info::Label>>, epic_label: &str) 
 }
 
 fn story_details(story: &epic_info::Story, epic_name: &str) -> String {
-    let labels_html = story_labels(&story.labels, epic_name);
+    let labels_html = format_story_labels(&story.labels, epic_name);
     return format!(
         "\
             <div id='story-details-{story_id}' class='not-selected'>\
