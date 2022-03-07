@@ -17,7 +17,7 @@ fn story_labels(story_labels: &Option<Vec<epic_info::Label>>, epic_label: &str) 
 
     let mut story_labels_html = format!("<span class=\"badge-epic\">{}</span>", epic_lowercase);
     if labels_html.len() > 0 {
-        story_labels_html = vec![story_labels_html, labels_html].join(", ");
+        story_labels_html = format!("{}, {}", &story_labels_html, &labels_html);
     }
 
     return story_labels_html;
