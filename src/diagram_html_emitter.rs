@@ -3,34 +3,41 @@ use super::epic_info;
 use chrono::{DateTime, Local, SecondsFormat};
 use std::fs;
 
-fn format_labels(labels: &Option<Vec<epic_info::Label>>) -> String {
-    let label_names = match labels {
-        Some(labels) => labels
-            .iter()
-            .map(|l| format!("<span>{}</span>", l.name))
+fn format_story_labels(story_labels: &Option<Vec<epic_info::Label>>, epic_label: &str) -> String {
+    let epic_lowercase = epic_label.to_lowercase();
+    let labels_html = match story_labels {
+        Some(story_labels) => story_labels
+            .into_iter()
+            .filter(|l| l.name != epic_lowercase)
+            .map(|l| format!("<span class=\"badge-label\">{}</span>", l.name))
             .collect::<Vec<String>>()
             .join(", "),
         None => "".to_owned(),
     };
 
-    return label_names;
+    let mut story_labels_html = format!("<span class=\"badge-epic\">{}</span>", epic_lowercase);
+    if labels_html.len() > 0 {
+        story_labels_html = format!("{}, {}", &story_labels_html, &labels_html);
+    }
+
+    return story_labels_html;
 }
 
-fn story_details(story: &epic_info::Story) -> String {
-    let label_names = format_labels(&story.labels);
+fn story_details(story: &epic_info::Story, epic_name: &str) -> String {
+    let labels_html = format_story_labels(&story.labels, epic_name);
     return format!(
         "\
             <div id='story-details-{story_id}' class='not-selected'>\
-                <p>id: <a href='{story_url}' target=_blank>{story_id}</a></p>\
-                <p>name: {name}</p>\
-                <p>labels: {labels}</p>\
-                <p>current state: {current_state:?}</p>\
+                <p><b>Id:</b> <a href='{story_url}' target=_blank>{story_id}</a></p>\
+                <p><b>Name:</b> {name}</p>\
+                <p><b>Labels:</b> {labels}</p>\
+                <p><b>Current State:</b> {current_state:?}</p>\
             </div>\
             \n",
         story_id = &story.id,
         story_url = &story.url,
         name = &story.name,
-        labels = label_names,
+        labels = labels_html,
         current_state = &story.current_state,
     );
 }
@@ -119,7 +126,10 @@ fn main(epic: &epic_info::Epic, stories: &Vec<epic_info::Story>) -> String {
         </div>
       </div>
         "#;
-    let story_details_nodes: String = stories.into_iter().map(story_details).collect();
+    let story_details_nodes: String = stories
+        .into_iter()
+        .map(|sd| story_details(sd, &epic.name))
+        .collect();
     let panel = format!(
         r#"
       <div class="panel">
