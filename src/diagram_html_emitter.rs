@@ -3,21 +3,28 @@ use super::epic_info;
 use chrono::{DateTime, Local, SecondsFormat};
 use std::fs;
 
-fn format_labels(labels: &Option<Vec<epic_info::Label>>) -> String {
-    let label_names = match labels {
-        Some(labels) => labels
-            .iter()
-            .map(|l| format!("<span>{}</span>", l.name))
+fn story_labels(story_labels: &Option<Vec<epic_info::Label>>, epic_label: &str) -> String {
+    let epic_lowercase = epic_label.to_lowercase();
+    let labels_html = match story_labels {
+        Some(story_labels) => story_labels
+            .into_iter()
+            .filter(|l| l.name != epic_lowercase)
+            .map(|l| format!("<span class=\"badge-label\">{}</span>", l.name))
             .collect::<Vec<String>>()
             .join(", "),
         None => "".to_owned(),
     };
 
-    return label_names;
+    let mut story_labels_html = format!("<span class=\"badge-epic\">{}</span>", epic_lowercase);
+    if labels_html.len() > 0 {
+        story_labels_html = vec![story_labels_html, labels_html].join(", ");
+    }
+
+    return story_labels_html;
 }
 
-fn story_details(story: &epic_info::Story) -> String {
-    let label_names = format_labels(&story.labels);
+fn story_details(story: &epic_info::Story, epic_name: &str) -> String {
+    let labels_html = story_labels(&story.labels, epic_name);
     return format!(
         "\
             <div id='story-details-{story_id}' class='not-selected'>\
@@ -30,7 +37,7 @@ fn story_details(story: &epic_info::Story) -> String {
         story_id = &story.id,
         story_url = &story.url,
         name = &story.name,
-        labels = label_names,
+        labels = labels_html,
         current_state = &story.current_state,
     );
 }
@@ -119,7 +126,10 @@ fn main(epic: &epic_info::Epic, stories: &Vec<epic_info::Story>) -> String {
         </div>
       </div>
         "#;
-    let story_details_nodes: String = stories.into_iter().map(story_details).collect();
+    let story_details_nodes: String = stories
+        .into_iter()
+        .map(|sd| story_details(sd, &epic.name))
+        .collect();
     let panel = format!(
         r#"
       <div class="panel">
