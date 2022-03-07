@@ -28,10 +28,10 @@ fn story_details(story: &epic_info::Story, epic_name: &str) -> String {
     return format!(
         "\
             <div id='story-details-{story_id}' class='not-selected'>\
-                <p>id: <a href='{story_url}' target=_blank>{story_id}</a></p>\
-                <p>name: {name}</p>\
-                <p>labels: {labels}</p>\
-                <p>current state: {current_state:?}</p>\
+                <p><b>Id:</b> <a href='{story_url}' target=_blank>{story_id}</a></p>\
+                <p><b>Name:</b> {name}</p>\
+                <p><b>Labels:</b> {labels}</p>\
+                <p><b>Current State:</b> {current_state:?}</p>\
             </div>\
             \n",
         story_id = &story.id,
